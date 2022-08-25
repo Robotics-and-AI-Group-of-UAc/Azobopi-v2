@@ -1,26 +1,26 @@
-#Pins used in Azobopi v2
+# Pins used in Azobopi v2
 
-###Motor
+### Motor
 
 |   Left   | Right     |
 |----------| --------- |
 | 25, 26   | 32, 33    |
 
 
-###Encoder
+### Encoder
 
 | Left     |  Right   |
 |----------|----------|
 |  34, 35  |   36,39  |
 
-###Oled
+### Oled
 
 | SDA | SCL |
 |-----|-----|
 | 21  | 22  |
 
 
-###Neopixel
+### Neopixel
 - data - 23
 
 ###Button
@@ -31,6 +31,6 @@
 - White Bottom - 19
 - Stop Center - 5
 
-###Sound
+### Sound
 - 12
 
