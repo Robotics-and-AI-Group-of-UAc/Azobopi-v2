@@ -23,7 +23,7 @@
 ### Neopixel
 - data - 23
 
-###Button
+### Button
 - Command State - 4
 - Red Left - 16
 - Blue Up - 17
