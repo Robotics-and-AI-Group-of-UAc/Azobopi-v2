@@ -26,8 +26,8 @@ bool PID::Initialize()
 
 bool PID::Compute() {
   //double error, proportional, integral, derivative;
-
-  error             = *_setpoint - abs(*_encread);
+  //@jmc: removing the abs
+  error             = *_setpoint - *_encread;
   proportional      = error;
   integral         += proportional;
   if (initialize == 1) {

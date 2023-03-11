@@ -6,11 +6,16 @@
 //#define DEBUG_ACT
 //#define DEBUG_FCT
 //#define DEBUG_STATE
+//#define DEBUG_SEQ_COMMANDS
+//#define COUNTING_ENCODERS
+// Debug Mode: Instead of smille presents the final value of encoders.
+//#define DEBUG_VISUAL_MODE
+
 
 //@ Debugging forward motors output
 //#define DEBUG_FORWARD_OUTPUT
 //@ Debugging turn
-#define DEBUG_TURN_OUTPUT
+//#define DEBUG_TURN_OUTPUT
 //@ Debugging backward motors output
 //#define DEBUG_BACKWARD_OUTPUT
 
@@ -41,9 +46,12 @@
 #else
   #define DEBUG_PRINTLN_STATE(x)
 #endif // debug setup
-
 // include software header files
 #include <Arduino.h>
+
+
+// include motor control library
+#include "ESP32MotorControl.h"
 
 //Pin Settings and hardware header files
 
@@ -62,7 +70,6 @@ ezButton button_backwards(19);
 ezButton button_forwards(17);
 ezButton button_right(18);
 ezButton button_stop (5);
-
 // States
 #define VOID_ST 0
 #define INIT_ST 1
@@ -89,8 +96,12 @@ ezButton button_stop (5);
 
 // commands
 int nr_comm;
-int comm_index;         // the index of the action that is being executed...
-int recorded_button[MAX_NR_COMMANDS];
+int comm_index;    // the index of the action that is being executed...
+int recorded_button[MAX_NR_COMMANDS]; //the buttons pressed
+// keep the sequence of buttons 
+// if left is pressed twice, a number 2 is added.
+// if forward is pressed three times, a number 3 is added.
+int sequence_rec_button[MAX_NR_COMMANDS]; //nr. of buttons pressed
 int button_index = 0;
 int mov;                // Programed data from buttons
 unsigned long button_command_count;  // Nr. of times command button is pressed
@@ -109,19 +120,50 @@ int stop_next_state;
 
 unsigned long time_now;
 
-double val_outputL;
-double val_outputR;
-double enc_readL;
-double enc_readR;
+double val_outputL; //output for left wheel 
+double val_outputR; //output for right wheel
+double enc_readL; //encoder reader from left wheel
+double enc_readR; //econder reader from right wheel
+
+double val_output; //output for encoder difference between wheels
+double enc_read; //difference between encoders: right wheel - left wheel
+
 //@Not using PID. Shift power allows to give more power to right or to left.
 double shift_powerL = 0;//.
 double shift_powerR = 1; //
 //@The fixed power to both motors
-int power_base = 50;
+int power_base = 40;
 int    kspeed = 1;
 volatile int counterPID;
 // freq for calculating PID
 int freq = 2000; //2000
+
+
+//DEVIATE
+#define  POWER_VALUES_DEVIATE 21// number of possible tuning setpoints in equivalent distances
+float shift_values_deviate[POWER_VALUES_DEVIATE];
+float shift_deviate_min = -50.00;
+float shift_deviate_max = 50.00;
+int tune_counter_deviate;
+float screen_counter_deviate;
+float Shift_deviate_power;
+
+//MOVE
+// tune forward/backward movement 
+#define SETPOINT_RUN 2400//2450 //3000;//3450; 
+#define SETPOINT_VALUES_MOVE 21
+float setpoint_values_move[SETPOINT_VALUES_MOVE];
+float shift_move_min = -600;
+float shift_move_max = 600;
+int tune_counter_move;
+float screen_counter_move;
+
+// SetPoints for PID
+// SetPoints: Original 3900
+//@ The power of wheels will differ by a positive or negative value.
+// We will always affect the value of right wheel
+//Not changing Setpoint_r yet!
+double Setpoint_r = SETPOINT_RUN;
 
 //PID for run
 // K values
@@ -145,52 +187,52 @@ double kd_r = 0.009; // previous values: 0.006
 // Kd: still reduces by -1
 // ************************************************** 
 
-//PID for turn
+#define SETPOINT_DIFF 0;
+double Setpoint_d = SETPOINT_DIFF;
+//PID for difference between encoders value
+// K values
+double kp_d = 0.01; //previous values: 0.01
+double ki_d = 0.005; //previous values: 0.005
+double kd_d = 0; // previous values:  
+// The ideia is to have the value equal to zero between encoders.
+// The difference between the encoders is right_wheel_enc - left_wheel_enc.
+// So if the value is positive, right wheel encoder has a higher value
+// than left wheel encoder and vice-versa.
+// We intend to give extra power ( to the right wheel of the robot.
+// *** Simulation for the SETPOINT_DIF***
+// The setpoint is zero.
+// if diff = 100, if kp_d = 0.01, the extra power should be -1
+// if diff = -100, kp_d = 0.01, the extra power is 1
+// if diff is 100 + 100 + 100 + 100, then for Ki = 0.005, we get
+// an extra power of -2 (additional to the value Kp_d).
+//
+//Kd will oscilates but it is a very small value
+//I'll keep it 0 for now. 
+//**************************************************
 
-double kpR_t = 0.0358; //previous values: 0.01
-double kpL_t = 0.035;
-double ki_t = 0.004; //previous values: 0.0001 0.0008
+
+//PID for turn
+double kpR_t = 0.035;//0.0358; //previous values: 0.01
+double kpL_t = 0.035;//0.035;
+double ki_t = 0.004;//0.004; //previous values: 0.0001 0.0008
 double kd_t = 0.006; // previous values: 0.006  
-// ** Simulation of the value for the SETPOINT_RUN **
-// Kp: The value for Kp = 0.01 will be aprox 39 and it reduced as it approaches the final value.
-// Ki: if error is reduced by 100 each time it is evaluated
-// then 3900 + 3800 + 3700 + 3600 + ... is the incremented value 
-// A value 0.001 increments 3.9 + 3.8 + 3.6. A value of 0.0001 increments
-// 0.3 + 0.3 + 0.3 ...
+// ** Simulation of the value for the SETPOINT_TURN **
 //
-// Kd: The value is reduced by 100 each time. So a negative value is added 
-// in counter cycle of Ki. If it has a value of 0.01 it reduces by 1: -1-1-1-1...
-//
-// When the distance to target is half of the initial value (1950)...
-// kp will reduce the value to 20, 19, 18....
-// Ki increments  value by 0.1
-// Kd: still reduces by -1
 // ************************************************** 
 
 
 
 // tune turn movement
-#define SETPOINT_TURN 1540;//Reference:1540; 
-#define SETPOINT_VALUES_TURN 7 // number of possible tuning setpoints in equivalent distances
+#define SETPOINT_TURN 1300//1400//1540;//Reference:1540; 
+#define SETPOINT_VALUES_TURN 21 // number of possible tuning setpoints in equivalent distances
 
 int setpoint_values_turn[SETPOINT_VALUES_TURN];
 int setpoint_turn_min = -200;
 int setpoint_turn_max = 200;
-int tune_counter_turn;
+int tune_counter_turn; //the counter of turn position
+float screen_counter_turn; //the value that is showed in the screen
 double Setpoint_t;
 
-// tune forward/backward movement 
-#define SETPOINT_RUN 3450; 
-// SetPoints for PID
-// SetPoints: Original 3900
-
-#define  SETPOINT_VALUES_RUN 7// number of possible tuning setpoints in equivalent distances
-float setpoint_values_move[SETPOINT_VALUES_RUN];
-float setpoint_move_min = -200.00;
-float setpoint_move_max = 200.00;
-int tune_counter_move;
-// initial straight run
-double Setpoint_r;
 
 
 
@@ -222,9 +264,10 @@ int turnspeedL = 40;
 int turnspeedR = 40;
 
 
-// time motors are stopped
+// time motors are stopped between movements (control to look at screen)
 #define STOP_DELAY 1000
-#define WAIT_DELAY 2000 // time the robo is waiting in delay state
+
+#define WAIT_DELAY 3000 // time the robo is waiting in delay state. It was 2000!
 unsigned long time_wait; // waiting timer
 bool reset_time_wait = 1; // bool to reset waiting timer
 
@@ -253,6 +296,8 @@ PID pidright_r(&Setpoint_r, &enc_readR, &val_outputR, kpR_r, ki_r, kd_r);
 // Initialize PID control for each motor left and right
 PID pidleft_t(&Setpoint_t, &enc_readL, &val_outputL, kpL_t, ki_t, kd_t);
 PID pidright_t(&Setpoint_t, &enc_readR, &val_outputR, kpR_t, ki_t, kd_t);
+//Initialize PID control for differences between encoders
+PID pid_d(&Setpoint_d, &enc_read, &val_output, kp_d, ki_d, kd_d);
 
 
 // OLED DISPLAY SSD1306

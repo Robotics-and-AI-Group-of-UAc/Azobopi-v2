@@ -49,39 +49,80 @@ void tuningSetupTurn()
   } 
   // Sets default value of tune counter in the middle of the number of possible tuning setpoints
   tune_counter_turn = SETPOINT_VALUES_TURN/2;
+  screen_counter_turn = 0; 
   
   // Sets default value of SETPOINT TURN in the middle of the number of possible tuning setpoints
   Setpoint_t = SETPOINT_TURN + setpoint_values_turn[tune_counter_turn];
   //Test
+  /*
   Serial.print("Adding values for tunning setpoint turn:");
   for (int c= 0; c < SETPOINT_VALUES_TURN; c++){
+    Serial.print(c);
+    Serial.print(":");
     Serial.print(setpoint_values_turn[c]);
+    Serial.print("|");
   }
+  //Test
   Serial.println();
   Serial.print("Setpoint turn:");
   Serial.println(Setpoint_t);
+  */
 }
-
-void tuningSetupMove()
+void tuningSetupDeviate() //Control the deviation from the movement forward
 {
-  // Creats array with tuning setpoints for forward/backward movement
-  for (int c = 0; c < SETPOINT_VALUES_RUN; c++)
+  // Creats array with tuning power of right wheel 
+  for (int c = 0; c < POWER_VALUES_DEVIATE; c++)
   {
     // map(value, fromLow, from High, toLow, toHigh)
-    setpoint_values_move[c] = map_values(c,0,SETPOINT_VALUES_RUN-1,setpoint_move_min,setpoint_move_max); 
+    shift_values_deviate[c] = map_values(c,0,POWER_VALUES_DEVIATE-1,shift_deviate_min,shift_deviate_max); 
   }
   // Sets default value of tune counter in the middle of the number of possible tuning setpoints
-  tune_counter_move = SETPOINT_VALUES_RUN/2;
+  tune_counter_deviate = POWER_VALUES_DEVIATE/2;
+  screen_counter_deviate = 0;
+  //@ Add to setpoint the additional value
+  Shift_deviate_power = shift_values_deviate[tune_counter_deviate]; 
+  //Test
+  /*
+  Serial.print("Adding values for tunning setpoint forward:");
+  for (int c= 0; c < POWER_VALUES_DEVIATE; c++){
+    Serial.print(c);
+    Serial.print(":");
+    Serial.print(shift_values_deviate[c]);
+    Serial.print("|");
+  }
+  Serial.println();
+  Serial.print("Shift deviate power for run:");
+  Serial.println(Shift_deviate_power); 
+  */
+
+}
+
+void tuningSetupMove() //Control the distance of the robot
+{
+  // Creats array with tuning power of right wheel 
+  for (int c = 0; c < SETPOINT_VALUES_MOVE; c++)
+  {
+    // map(value, fromLow, from High, toLow, toHigh)
+    setpoint_values_move[c] = map_values(c,0,SETPOINT_VALUES_MOVE-1,shift_move_min,shift_move_max); 
+  }
+  // Sets default value of tune counter in the middle of the number of possible tuning setpoints
+  tune_counter_move = SETPOINT_VALUES_MOVE/2;
+  screen_counter_move = 0;
   //@ Add to setpoint the additional value
   Setpoint_r = SETPOINT_RUN + setpoint_values_move[tune_counter_move]; 
   //Test
+  /*
   Serial.print("Adding values for tunning setpoint forward:");
-  for (int c= 0; c < SETPOINT_VALUES_RUN; c++){
+  for (int c= 0; c < POWER_VALUES_MOVE; c++){
+    Serial.print(c);
+    Serial.print(":");
     Serial.print(setpoint_values_move[c]);
+    Serial.print("|");
   }
   Serial.println();
-  Serial.print("Setpoint for run:");
+  Serial.print("New setpoint:");
   Serial.println(Setpoint_r); 
+  */
 }
 
 void startTimer()
@@ -132,6 +173,21 @@ void read_direction_buttons() // function to read direction buttons
     tone(PIN_SPEAKER,NOTE_C6,100); // play single note for user feedback
     if (mov != 0) { // check if mov is not 0
       recorded_button[nr_comm] = mov; //write mov to array of recorded buttons(movements)
+      //@Sequence
+      if (nr_comm > 0){
+        //if previous command is equal to actual command...
+        if (recorded_button[nr_comm - 1] == mov){
+          //increase the value of sequence in the sequence...
+          sequence_rec_button[nr_comm] = sequence_rec_button[nr_comm - 1] + 1;
+        }
+        //Keep the number 1, first time command
+        else sequence_rec_button[nr_comm] = 1;
+      }
+      else{
+        //First time sequence
+        sequence_rec_button[nr_comm] = 1;
+      }
+      //@End sequence
       nr_comm++; //add 1 to the total number of movements
     }
     mov = 0; //reset mov to 0 
@@ -144,6 +200,21 @@ void read_direction_buttons() // function to read direction buttons
     tone(PIN_SPEAKER,NOTE_C6,100); // play single note for user feedback
     if (mov != 0) { // check if mov is not 0
       recorded_button[nr_comm] = mov; //write mov to array of recorded buttons(movements)
+      //@Sequence
+      if (nr_comm > 0){
+        //if previous command is equal to actual command...
+        if (recorded_button[nr_comm - 1] == mov){
+          //increase the value of sequence in the sequence...
+          sequence_rec_button[nr_comm] = sequence_rec_button[nr_comm - 1] + 1;
+        }
+        //Keep the number 1, first time command
+        else sequence_rec_button[nr_comm] = 1;
+      }
+      else{
+        //First time sequence
+        sequence_rec_button[nr_comm] = 1;
+      }
+      //@End sequence
       nr_comm++; //add 1 to the total number of movements
     }
     mov = 0; //reset mov to 0 
@@ -156,6 +227,21 @@ void read_direction_buttons() // function to read direction buttons
     tone(PIN_SPEAKER,NOTE_C6,100); // play single note for user feedback
     if (mov != 0) { // check if mov is not 0
       recorded_button[nr_comm] = mov; //write mov to array of recorded buttons(movements)
+      //@Sequence
+      if (nr_comm > 0){
+        //if previous command is equal to actual command...
+        if (recorded_button[nr_comm - 1] == mov){
+          //increase the value of sequence in the sequence...
+          sequence_rec_button[nr_comm] = sequence_rec_button[nr_comm - 1] + 1;
+        }
+        //Keep the number 1, first time command
+        else sequence_rec_button[nr_comm] = 1;
+      }
+      else{
+        //First time sequence
+        sequence_rec_button[nr_comm] = 1;
+      }
+      //@End sequence
       nr_comm++; //add 1 to the total number of movements
     }
     mov = 0; //reset mov to 0
@@ -169,6 +255,22 @@ void read_direction_buttons() // function to read direction buttons
     tone(PIN_SPEAKER,NOTE_C6,100); // play single note for user feedback
     if (mov != 0) { // check if mov is not 0
       recorded_button[nr_comm] = mov; //write mov to array of recorded buttons(movements)
+      //@Sequence
+      if (nr_comm > 0){
+        //if previous command is equal to actual command...
+        if (recorded_button[nr_comm - 1] == mov){
+          //increase the value of sequence in the sequence...
+          sequence_rec_button[nr_comm] = sequence_rec_button[nr_comm - 1] + 1;
+        }
+        //Keep the number 1, first time command
+        else sequence_rec_button[nr_comm] = 1;
+      }
+      else{
+        //First time sequence
+        sequence_rec_button[nr_comm] = 1;
+      }
+      //@End sequence
+
       nr_comm++; //add 1 to the total number of movements
     }
     mov = 0; //reset mov to 0 
@@ -182,6 +284,21 @@ void read_direction_buttons() // function to read direction buttons
     tone(PIN_SPEAKER,NOTE_C6,100); // play single note for user feedback
     if (mov != 0) { // check if mov is not 0
       recorded_button[nr_comm] = mov; //write mov to array of recorded buttons(movements)
+      //@Sequence
+      if (nr_comm > 0){
+        //if previous command is equal to actual command...
+        if (recorded_button[nr_comm - 1] == mov){
+          //increase the value of sequence in the sequence...
+          sequence_rec_button[nr_comm] = sequence_rec_button[nr_comm - 1] + 1;
+        }
+        //Keep the number 1, first time command
+        else sequence_rec_button[nr_comm] = 1;
+      }
+      else{
+        //First time sequence
+        sequence_rec_button[nr_comm] = 1;
+      }
+      //@End sequence
       nr_comm++; //add 1 to the total number of movements
     }
     mov = 0; //reset mov to 0 
@@ -201,6 +318,7 @@ void init(void) // function to init the the robo
     // Initialize state
     nr_comm = 0;                                         // start the command reading
     memset(recorded_button, 0, sizeof(recorded_button)); // initialize to zero the commands vector
+    memset(sequence_rec_button,0,sizeof(sequence_rec_button)); //bis
     machine_state = READ_COMM_ST; // set machine state to read comm
   }
 
@@ -224,11 +342,25 @@ void readComm(void) // funciton to read movement commands
 
   if (nr_comm < MAX_NR_COMMANDS) { // it only keeps the first max_nr_commands...
     read_direction_buttons(); // call read dir func
+    
   }
 
   // -- wait for the button_command_count = 2 and nr_commands != 0
   if (button_command_count == 2 and nr_comm != 0) {
     machine_state = START_EXEC_ST;
+    //Testing the sequence of commands with the number of sequence of comm. exec.
+    #ifdef DEBUG_SEQ_COMMANDS
+      Serial.print("(Command,Sequence):");
+      for (int i=0;i<nr_comm;i++){
+        Serial.print("(");
+        Serial.print(recorded_button[i]);
+        Serial.print(",");
+        Serial.print(sequence_rec_button[i]);
+        Serial.print(")");
+      }
+      Serial.println();
+    #endif
+
   }
 
   if (button_command_count >= 2 && nr_comm == 0) { // reset command button counter if command button is pressed more then one time
@@ -242,7 +374,10 @@ void startExec(void) // function to start execution of commands
 {
   DEBUG_PRINTLN_FCT("exc startExec fct"); // debug print
   setLed(0, 255, 0); // set LED to green
+  #ifndef DEBUG_VISUAL_MODE
   showBitmap(image_data_EYES_MIDDLE);
+  #endif
+
   button_forwards.loop(); 
 
   if (button_command_count > 2) {
@@ -271,7 +406,9 @@ void stopExec(void){
 
     comm_index = 0; // set comm index to 0 to restart at command 0 on the next run
     
+    #ifndef DEBUG_VISUAL_MODE
     showBitmap(image_data_DISTRESSED_EYES);
+    #endif
     stop_melody();
 
     button_forwards.loop();
@@ -281,7 +418,7 @@ void stopExec(void){
   }
 }
 
-void exec(void) // function to execut the movement commands
+void exec(void) // function to execute the movement commands
 {
   DEBUG_PRINTLN_FCT("exc exec fct"); // debug print
   comm_index--; // comm index -1
@@ -289,17 +426,42 @@ void exec(void) // function to execut the movement commands
   if (comm_index >= 0) { // avoid getting nonsense data
     setLed(255, 51, 255);               // set led to pink
     int action = recorded_button[(nr_comm - 1) - comm_index];  // get current action
+    int seq_action = sequence_rec_button[(nr_comm - 1) - comm_index];
+    #ifdef DEBUG_SEQ_COMMANDS
+      Serial.print("Action|Seq. Action:");
+      Serial.print(action);
+      Serial.print("|");
+      Serial.println(seq_action);
+    #endif
     if (action == FORWARD) {  //set state to execute movement action
       //@Initialize PID for run
       //Setpoint_r = SETPOINT_RUN;     
       pidleft_r.Initialize();
       pidright_r.Initialize();
+      //@Initialize PID for difference:
+      // Only initialize PID if it is the first time 
+      // the action FORWARD is executed. 
+      if (seq_action == 1) { 
+        //Test
+        //Serial.println("Initialize pid_d");
+        pid_d.Initialize();
+      }
+      #ifdef DEBUG_SEQ_COMMANDS
+      Serial.print("FORWARD sequence command number:");
+      Serial.println(seq_action);
+      #endif
       machine_state = FORWARD_ST; 
     } else if (action == BACKWARD) {
       //@Initialize PID for run
       //Setpoint_r = SETPOINT_RUN;     
       pidleft_r.Initialize();
       pidright_r.Initialize();
+      if (seq_action == 1) { 
+        //Test
+        //Serial.println("Initialize pid_d");
+        pid_d.Initialize();
+      }
+//      pid_d.Initialize();
       machine_state = BACK_ST;
     } else if (action == TURN_LEFT) {
       //@Initialize PID for turn
@@ -322,8 +484,8 @@ void exec(void) // function to execut the movement commands
 
   if (comm_index < 0) {             // no more commands
     finish_melody();
-    button_forwards.loop();         
-
+    button_forwards.loop(); 
+  
     if (button_forwards.isReleased()) { // wait till button releases state
       machine_state = START_EXEC_ST;
     }
@@ -334,7 +496,9 @@ void turnRight(void) // function to turn right
 {
   DEBUG_PRINTLN_FCT("exc turnRight fct");
   DEBUG_PRINTLN_ACT("turn right");
+  #ifndef DEBUG_VISUAL_MODE 
   showBitmap(image_data_EYES_LEFT);
+  #endif
   if ((abs(encoder1_pos) < Setpoint_t) &&
       (abs(encoder2_pos) < Setpoint_t))
   {
@@ -346,6 +510,9 @@ void turnRight(void) // function to turn right
     int ver =  val_outputR;
     //int ver = 50;
     //int vel = 50;
+    //@ Verify if value is less than 20
+    if (vel < 20) { vel = 20;}
+    if (ver < 20) { ver = 20;}
   //@ Changed the pins
     MotorControl.motorReverse(1, ver);
     MotorControl.motorForward(0, vel);
@@ -374,7 +541,11 @@ void turnRight(void) // function to turn right
       Serial.print(encoder1_pos);
       Serial.print("| Right encoder:");
       Serial.println(encoder2_pos);
-      Serial.print("Vel. Left:");
+      Serial.print("Vel. Left:");      Serial.print("Left encoder:");
+      Serial.print(encoder1_pos);
+      Serial.print("| Right encoder:");
+      Serial.println(encoder2_pos);
+
       Serial.print(vel);
       Serial.print("| Vel. Right:");
       Serial.println(ver);
@@ -384,8 +555,14 @@ void turnRight(void) // function to turn right
       portENTER_CRITICAL_ISR(&counterMux);
       counterPID = 0;
       portEXIT_CRITICAL_ISR(&counterMux);
-      enc_readL = encoder1_pos;
-      enc_readR = encoder2_pos;
+      enc_readL = abs(encoder1_pos);
+      enc_readR = abs(encoder2_pos);
+      /*
+      Serial.print("Left encoder:");
+      Serial.print(encoder1_pos);
+      Serial.print("| Right encoder:");
+      Serial.println(encoder2_pos);
+      */
       pidleft_t.Compute();
       pidright_t.Compute();
     }    
@@ -410,7 +587,9 @@ void turnLeft(void) // function to turn left
 {
   DEBUG_PRINTLN_FCT("exc turnLeft fct");
   DEBUG_PRINTLN_ACT("turn left");
+  #ifndef DEBUG_VISUAL_MODE
   showBitmap(image_data_EYES_RIGHT);
+  #endif
   if ((abs(encoder1_pos) < Setpoint_t) &&
       (abs(encoder2_pos) < Setpoint_t))
   {
@@ -422,6 +601,10 @@ void turnLeft(void) // function to turn left
     int ver = val_outputR;
     //int ver = 50;
     //int vel = 50;
+    //@ Verify if value is less than 20
+    if (vel < 20) { vel = 20;}
+    if (ver < 20) { ver = 20;}
+
     // @Changed the pins
     MotorControl.motorReverse(0, vel);
     MotorControl.motorForward(1, ver);
@@ -462,8 +645,8 @@ void turnLeft(void) // function to turn left
       portENTER_CRITICAL_ISR(&counterMux);
       counterPID = 0;
       portEXIT_CRITICAL_ISR(&counterMux);
-      enc_readL = encoder1_pos;
-      enc_readR = encoder2_pos;
+      enc_readL = abs(encoder1_pos);
+      enc_readR = abs(encoder2_pos);
       pidleft_t.Compute();
       pidright_t.Compute();
     }
@@ -492,9 +675,12 @@ distance and not the velocity of the robot.
 */
 void forward(void) // function to drive forwards
 {
-  //DEBUG_PRINTLN_FCT("exc forward fct");
-  //DEBUG_PRINTLN_ACT("drive forward");
-  //showBitmap(image_data_EYES_DOWN);
+
+  DEBUG_PRINTLN_FCT("exc forward fct");
+  DEBUG_PRINTLN_ACT("drive forward");
+  #ifndef DEBUG_VISUAL_MODE
+    showBitmap(image_data_EYES_DOWN);
+  #endif
   //@ Eventually we will change the code to the following:
   //if ((abs(encoder1_pos) < SETPOINT_RUN + setpoint_straight_run) &&
   //    (abs(encoder2_pos) < SETPOINT_RUN + setpoint_straight_run)) {
@@ -511,9 +697,12 @@ void forward(void) // function to drive forwards
     //@Using PID
     //int vel = shift_powerL + val_outputL;
     //int ver = shift_powerR + val_outputR;
-    //@Constant without PID and with shift 
+    //@Constant without PID and with shift (initial shift and tunning shift) and
+    // the val_output, output value from the difference PID
     int vel = power_base + shift_powerL;
-    int ver = power_base + shift_powerR;
+    //int ver = power_base + shift_powerR  + Shift_deviate_power + val_output;
+    int ver = power_base + shift_powerR  + val_output;
+  
     //if (vel > 50){vel = 50;}
     //if (ver > 50){ver = 50;}
     
@@ -549,7 +738,8 @@ void forward(void) // function to drive forwards
     //MotorControl.motorReverse(0, vel);
     //MotorControl.motorReverse(1, ver);
   
-    MotorControl.motorForward(0, vel);
+  
+    MotorControl.motorForward(0, vel);  
     MotorControl.motorForward(1, ver);
     
   
@@ -557,19 +747,64 @@ void forward(void) // function to drive forwards
       portENTER_CRITICAL_ISR(&counterMux);
       counterPID = 0;
       portEXIT_CRITICAL_ISR(&counterMux);
-      enc_readL = encoder1_pos;
-      enc_readR = encoder2_pos;
-      pidleft_r.Compute();
-      pidright_r.Compute();
+
+      #ifdef COUNTING_ENCODERS
+      Serial.print("Left encoder:");
+      Serial.print(encoder1_pos);
+      Serial.print("| Right encoder:");
+      Serial.println(encoder2_pos);
+      Serial.print("Vel. Left:");
+      Serial.print(vel);
+      Serial.print("| Vel. Right:");
+      Serial.println(ver);
+      Serial.print("diff power:");
+      Serial.println(val_output);
+      Serial.print("kp*P:");
+      Serial.print(kp_d*pid_d.GetP());
+      Serial.print("|I:");
+      Serial.print(ki_d*pid_d.GetI());
+      Serial.print("|kd*D:");
+      Serial.print(kd_d*pid_d.GetD());
+      Serial.println();
+
+      #endif
+      enc_readL = abs(encoder1_pos);
+      enc_readR = abs(encoder2_pos);
+      // Diff between encoders
+      enc_read = enc_readR - enc_readL;
+      //Test
+      Serial.print("Enc_read:");
+      Serial.println(enc_read);
+      //pidleft_r.Compute();
+      //pidright_r.Compute();
+      pid_d.Compute(); //Compute PID difference
       //Serial.println("PID compute");
+      //Test
+      Serial.print("PID output:");
+      Serial.println(val_output);
+    
+      #ifdef DEBUG_VISUAL_MODE
+          display.setTextSize(1);
+          display.setTextColor(WHITE);
+          display.clearDisplay();
+          // Adjusting Powerdisplay.setCursor(10, 10);
+          display.print("Right Encd: ");
+          display.println(encoder2_pos);
+          display.setCursor(10, 20);
+          display.print("Left Encd: ");
+          display.print(encoder1_pos);
+          display.display();
+      #endif
+
     }
   
-  } else {
+  } else {    
     stopTimer();
     time_now = millis();
 
     stop_next_state = EXEC_ST;
     machine_state   = STOP_ST;
+
   }
   stopExec(); // stop current execution
 }
@@ -578,7 +813,9 @@ void back(void) // function to drive backwards
 {
   DEBUG_PRINTLN_FCT("exc back fct");
   DEBUG_PRINTLN_ACT("drive back");
+  #ifndef DEBUG_VISUAL_MODE 
   showBitmap(image_data_EYES_UP);
+  #endif
   if ((abs(encoder1_pos) < Setpoint_r) &&
       (abs(encoder2_pos) < Setpoint_r)) {
     startTimer();
@@ -586,8 +823,13 @@ void back(void) // function to drive backwards
     //int vel = kspeed * (speedL + val_outputL) + setpoint_straight_run; // setpoint_straight_run -> make sure robo goes straight
     //int ver = kspeed * (speedR + val_outputR) - setpoint_straight_run;
     //@ Changed the pins to have reverse in back:
-    int vel = shift_powerL + val_outputL;
-    int ver = shift_powerR + val_outputR;
+    int vel = power_base + shift_powerL;
+  //  int ver = power_base + shift_powerR  + Shift_deviate_power + val_output;
+    int ver = power_base + shift_powerR  + val_output;
+
+
+    //int vel = shift_powerL + val_outputL;
+    //int ver = shift_powerR + val_outputR;
    //Testing the values of velocity:
     #ifdef DEBUG_BACKWARD_OUTPUT
       Serial.print("P left:");
@@ -624,11 +866,13 @@ void back(void) // function to drive backwards
       portENTER_CRITICAL_ISR(&counterMux);
       counterPID = 0;
       portEXIT_CRITICAL_ISR(&counterMux);
-      enc_readL = encoder1_pos;
-      enc_readR = encoder2_pos;
-      pidleft_r.Compute();
-      pidright_r.Compute();
-
+      enc_readL = abs(encoder1_pos);
+      enc_readR = abs(encoder2_pos);
+      // Diff between encoders
+      enc_read = enc_readR - enc_readL;
+      //pidleft_r.Compute();
+      //pidright_r.Compute();
+      pid_d.Compute(); //Compute PID difference
     }
   } else {
     stopTimer();
@@ -644,8 +888,9 @@ void wait(void) // function to wait
 {
   DEBUG_PRINTLN_FCT("exc wait fct");
   DEBUG_PRINTLN_ACT("wait");
+  #ifndef DEBUG_VISUAL_MODE
   showBitmap(image_data__EYES_BLANK);
-  
+  #endif
   if (reset_time_wait){
     time_wait = millis();
     reset_time_wait = 0;
@@ -666,103 +911,168 @@ void tune()
   DEBUG_PRINTLN_FCT("exc read_tune_buttons fct"); //debug print
   display.setTextSize(1);
   display.setTextColor(WHITE);
-  button_right.loop(); //read right button
+  Serial.println(button_stop_count);
 
-  if (button_right.isPressed()) {   //check if right button is pressed
-    if (tune_counter_turn+1 < SETPOINT_VALUES_TURN) 
-    {
-      tune_counter_turn++; //add 1 to the tune_counter 
-      DEBUG_PRINT_ACT("Tune Counter: ");
-      DEBUG_PRINTLN_ACT(tune_counter_turn);
-      
-      Setpoint_t = SETPOINT_TURN + setpoint_values_turn[tune_counter_turn];
-      DEBUG_PRINT_ACT("New Setpoint Value: ");
-      DEBUG_PRINTLN_ACT(Setpoint_t);
-      tone(PIN_SPEAKER,NOTE_C6,100); // play single note for user feedback
-      DEBUG_PRINTLN_ACT("button right is pressed"); // debug print
-      int brightness = map(tune_counter_turn,0,SETPOINT_VALUES_TURN,0,255);
-      pixels.setBrightness(brightness); // adjust brightness of LED for optical user feedback
-      setLed(125, 255, 0);               // set LED to green
-     }
-  }
-   
-  button_left.loop(); //read left button
+  if (button_stop_count == 1) //Correcting movement forward and backward
+  {
+    button_left.loop(); //read left button
 
-  if (button_left.isPressed()) {   //check if left button is pressed
-    if (tune_counter_turn >=1 && tune_counter_turn <= SETPOINT_VALUES_TURN)
-    {
-      tune_counter_turn--; //subtract 1 from the tune_counter 
-      DEBUG_PRINT_ACT("Tune Counter: ");
-      DEBUG_PRINTLN_ACT(tune_counter_turn);
-      Setpoint_t = SETPOINT_TURN + setpoint_values_turn[tune_counter_turn];
-      DEBUG_PRINT_ACT("New Setpoint Value: ");
-      DEBUG_PRINTLN_ACT(Setpoint_t);
-      tone(PIN_SPEAKER,NOTE_C6,100); // play single note for user feedback
-      DEBUG_PRINTLN_ACT("button left is pressed"); // debug print
-      int brightness = map(tune_counter_turn,0,SETPOINT_VALUES_TURN,0,255);
-      pixels.setBrightness(brightness); // adjust brightness of LED for optical user feedback
-      setLed(125, 255, 0);               // set LED to green
+    if (button_left.isReleased()) {   //check if right button is pressed
+      if (tune_counter_deviate+1 < POWER_VALUES_DEVIATE) 
+      {
+        tune_counter_deviate++; //subtract 1 from the tune_counter 
+        DEBUG_PRINT_ACT("Tune Counter deviate: ");
+        DEBUG_PRINTLN_ACT(tune_counter_deviate);      
+        Shift_deviate_power = shift_values_deviate[tune_counter_deviate];
+        // SetPoint_d will correspond to desired difference between values of encoders!
+        Setpoint_d = Shift_deviate_power
+
+        DEBUG_PRINT_ACT("New ballance power value: ");
+        DEBUG_PRINTLN_ACT(Shift_deviate_power);
+        tone(PIN_SPEAKER,NOTE_C6,100); // play single note for user feedback
+        DEBUG_PRINTLN_ACT("button forwards is pressed"); // debug print
+        int brightness = map(tune_counter_deviate,0,POWER_VALUES_DEVIATE,0,255);
+        pixels.setBrightness(brightness); // adjust brightness of LED for optical user feedback
+        setLed(165,42,42);               // set LED to 
+
+      }
     }
+    button_right.loop(); //read right button
+    if (button_right.isReleased()) {   //check if right button is pressed
+      if (tune_counter_deviate >=1 && tune_counter_deviate <= POWER_VALUES_DEVIATE)
+      {
+        tune_counter_deviate--; //add 1 to the tune_counter 
+        DEBUG_PRINT_ACT("Tune Counter deviate: ");
+        DEBUG_PRINTLN_ACT(tune_counter_deviate);
+        Shift_deviate_power = shift_values_deviate[tune_counter_deviate];
+        // SetPoint_d will correspond to desired difference between values of encoders!
+        Setpoint_d = Shift_deviate_power
+        DEBUG_PRINT_ACT("New ballance power value: ");
+        DEBUG_PRINTLN_ACT(Shift_deviate_power);
+        tone(PIN_SPEAKER,NOTE_C6,100); // play single note for user feedback
+        DEBUG_PRINTLN_ACT("button backwards is pressed"); // debug print
+        int brightness = map(tune_counter_deviate,0,POWER_VALUES_DEVIATE,0,255);
+        pixels.setBrightness(brightness); // adjust brightness of LED for optical user feedback
+        setLed(165,42,42);               // set LED to 
+
+      }
+    }
+    display.clearDisplay();
+    display.setCursor(10, 10);
+    display.println("Desvio em frente");
+    display.println();
+    display.print("       ");
+    display.println(Shift_deviate_power);
+    display.display();
   }
+  
+  if (button_stop_count == 2)//Turn more or less degrees (to left or right)
+  {
 
-  button_forwards.loop(); //read forward button
-
-  if (button_forwards.isPressed()) {   //check if right button is pressed
-    if (tune_counter_move+1 < SETPOINT_VALUES_RUN) 
-    {
-      tune_counter_move++; //subtract 1 from the tune_counter 
-      DEBUG_PRINT_ACT("Tune Counter: ");
-      DEBUG_PRINTLN_ACT(tune_counter_move);
+    button_forwards.loop(); //read forward button
+    if (button_forwards.isReleased()) {   //check if right button is pressed
+      if (tune_counter_turn+1 < SETPOINT_VALUES_TURN) 
+      {
+        tune_counter_turn++; //add 1 to the tune_counter 
+        screen_counter_turn++;
+        DEBUG_PRINT_ACT("Tune Counter: ");
+        DEBUG_PRINTLN_ACT(tune_counter_turn);
       
-      Setpoint_r = SETPOINT_RUN + setpoint_values_move[tune_counter_move];
-      DEBUG_PRINT_ACT("New Setpoint Value: ");
-      DEBUG_PRINTLN_ACT(Setpoint_r);
-      tone(PIN_SPEAKER,NOTE_C6,100); // play single note for user feedback
-      DEBUG_PRINTLN_ACT("button forwards is pressed"); // debug print
-      int brightness = map(tune_counter_move,0,SETPOINT_VALUES_RUN,0,255);
-      pixels.setBrightness(brightness); // adjust brightness of LED for optical user feedback
-      setLed(165,42,42);               // set LED to 
+        Setpoint_t = SETPOINT_TURN + setpoint_values_turn[tune_counter_turn];
+        DEBUG_PRINT_ACT("New Setpoint Value: ");
+        DEBUG_PRINTLN_ACT(Setpoint_t);
+        tone(PIN_SPEAKER,NOTE_C6,100); // play single note for user feedback
+        DEBUG_PRINTLN_ACT("button right is pressed"); // debug print
+        int brightness = map(tune_counter_turn,0,SETPOINT_VALUES_TURN,0,255);
+        pixels.setBrightness(brightness); // adjust brightness of LED for optical user feedback
+        setLed(125, 255, 0);               // set LED to green
+      }
+    }   
+    button_backwards.loop(); //read left button
+    if (button_backwards.isReleased()) {   //check if left button is pressed
+      if (tune_counter_turn >=1 && tune_counter_turn <= SETPOINT_VALUES_TURN)
+      {
+        tune_counter_turn--; //subtract 1 from the tune_counter 
+        screen_counter_turn--;
+        DEBUG_PRINT_ACT("Tune Counter: ");
+        DEBUG_PRINTLN_ACT(tune_counter_turn);
+        Setpoint_t = SETPOINT_TURN + setpoint_values_turn[tune_counter_turn];
+        DEBUG_PRINT_ACT("New Setpoint Value: ");
+        DEBUG_PRINTLN_ACT(Setpoint_t);
+        tone(PIN_SPEAKER,NOTE_C6,100); // play single note for user feedback
+        DEBUG_PRINTLN_ACT("button left is pressed"); // debug print
+        int brightness = map(tune_counter_turn,0,SETPOINT_VALUES_TURN,0,255);
+        pixels.setBrightness(brightness); // adjust brightness of LED for optical user feedback
+        setLed(125, 255, 0);               // set LED to green
+      }
+    }
 
-     }
+    display.clearDisplay();
+    display.setCursor(10, 10);
+    display.println("Acertar o rodar");
+    display.println();
+    display.print("        ");
+    display.println(screen_counter_turn);
+    display.display();
   }
-   
-  button_backwards.loop(); //read forward button
 
-  if (button_backwards.isPressed()) {   //check if right button is pressed
-    if (tune_counter_move >=1 && tune_counter_move <= SETPOINT_VALUES_RUN)
-    {
-      tune_counter_move--; //add 1 to the tune_counter 
-      DEBUG_PRINT_ACT("Tune Counter: ");
-      DEBUG_PRINTLN_ACT(tune_counter_move);
-      //@N New Setpoint run:
-      Setpoint_r = SETPOINT_RUN + setpoint_values_move[tune_counter_move];
-      DEBUG_PRINT_ACT("New Setpoint Value: ");
-      DEBUG_PRINTLN_ACT(Setpoint_r);
-      tone(PIN_SPEAKER,NOTE_C6,100); // play single note for user feedback
-      DEBUG_PRINTLN_ACT("button backwards is pressed"); // debug print
-      int brightness = map(tune_counter_move,0,SETPOINT_VALUES_RUN,0,255);
-      pixels.setBrightness(brightness); // adjust brightness of LED for optical user feedback
-      setLed(165,42,42);               // set LED to 
+  if (button_stop_count == 3)//Distance forward
+  {
+  button_forwards.loop(); //read forward button
+    if (button_forwards.isReleased()) {   //check if right button is pressed
+      if (tune_counter_move+1 < SETPOINT_VALUES_MOVE) 
+      {
+        tune_counter_move++; //add 1 to the tune_counter 
+        screen_counter_move++;
+        DEBUG_PRINT_ACT("Tune Counter move forward: ");
+        DEBUG_PRINTLN_ACT(tune_counter_move);
+      
+        Setpoint_r = SETPOINT_RUN + setpoint_values_move[tune_counter_move];
+        DEBUG_PRINT_ACT("New Setpoint Value: ");
+        DEBUG_PRINTLN_ACT(Setpoint_r);
+        tone(PIN_SPEAKER,NOTE_C6,100); // play single note for user feedback
+        DEBUG_PRINTLN_ACT("button right is pressed"); // debug print
+        int brightness = map(tune_counter_move,0,SETPOINT_VALUES_MOVE,0,255);
+        pixels.setBrightness(brightness); // adjust brightness of LED for optical user feedback
+        setLed(125, 255, 0);               // set LED to green
+      }
+    }   
+    button_backwards.loop(); //read left button
+    if (button_backwards.isReleased()) {   //check if left button is pressed
+      if (tune_counter_move >=1 && tune_counter_move <= SETPOINT_VALUES_MOVE)
+      {
+        tune_counter_move--; //subtract 1 from the tune_counter 
+        screen_counter_move--;
+        DEBUG_PRINT_ACT("Tune Counter: ");
+        DEBUG_PRINTLN_ACT(tune_counter_move);
+        Setpoint_r = SETPOINT_RUN + setpoint_values_turn[tune_counter_move];
+        DEBUG_PRINT_ACT("New Setpoint Value: ");
+        DEBUG_PRINTLN_ACT(Setpoint_r);
+        tone(PIN_SPEAKER,NOTE_C6,100); // play single note for user feedback
+        DEBUG_PRINTLN_ACT("button left is pressed"); // debug print
+        int brightness = map(tune_counter_turn,0,SETPOINT_VALUES_MOVE,0,255);
+        pixels.setBrightness(brightness); // adjust brightness of LED for optical user feedback
+        setLed(125, 255, 0);               // set LED to green
+      }
+    }
+    display.clearDisplay();
+    display.setCursor(10, 10);
+    display.println("Acertar a distancia");
+    display.println("");
+    display.print("         ");
+    display.println(screen_counter_move);
+    display.display();
 
-     }
   }
-
-  display.clearDisplay();
-  display.setCursor(10, 10);
-  display.print("Straight: ");
-  display.println(Setpoint_r);
-  display.setCursor(10, 20);
-  display.print("Degree  : ");
-  display.print(Setpoint_t);
-  display.display();
-
-
-if (button_stop_count == 2) //switch to INIT state
+  
+  if (button_stop_count == 4) //switch to INIT state
   {
     machine_state = INIT_ST;
     button_stop_count = 0; // reset button stop counter
     button_stop.resetCount(); // reset button stop
     pixels.setBrightness(255); // reset brightness of LED after tune state 
+    display.clearDisplay();
+    showBitmap(image_data_EYES_MIDDLE);
   }
 }
 
@@ -880,14 +1190,18 @@ void setup() // microcontroller setup runs once
   display.clearDisplay(); // Clear the buffer
   showBitmap(bitmap_uac_logo); // show uac logo
   delay(500); // show UAC logo for 0.5 sec
+  #ifndef DEBUG_VISUAL_MODE
   showBitmap(image_data_EYES_MIDDLE);
-
+  #endif
   //play startup melody
   startup_melody();
   
   // setup ez buttons debounce time
   button_command.setDebounceTime(button_debounce_time); 
+  
   button_command.setCountMode(COUNT_FALLING);
+  //button_command.setCountMode(COUNT_RISING);
+
   button_left.setDebounceTime(button_debounce_time);
   button_forwards.setDebounceTime(button_debounce_time);
   button_right.setDebounceTime(button_debounce_time);
@@ -915,6 +1229,7 @@ void setup() // microcontroller setup runs once
 
   // Tuning Setup
   tuningSetupTurn();
+  tuningSetupDeviate();
   tuningSetupMove();
 
   machine_state = INIT_ST; // set machine to init state
